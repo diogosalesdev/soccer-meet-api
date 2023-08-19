@@ -3,6 +3,9 @@ use actix_web::{self, http::header, middleware::Logger, App, HttpServer};
 use dotenv::dotenv;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
+use crate::routes::health_route::health_checker_handler;
+
+pub mod routes;
 pub struct AppState {
     db: Pool<Postgres>,
 }
@@ -35,7 +38,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://localhost::3000")
+            .allowed_origin("http://localhost:3000")
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![
                 header::CONTENT_TYPE,
@@ -46,6 +49,7 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .app_data(actix_web::web::Data::new(AppState { db: pool.clone() }))
+            .service(health_checker_handler)
             // .configure(config)
             .wrap(cors)
             .wrap(Logger::default())
