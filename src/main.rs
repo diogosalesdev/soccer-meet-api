@@ -6,6 +6,7 @@ use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use crate::routes::health_route::health_checker_handler;
 
 pub mod routes;
+pub mod models;
 pub struct AppState {
     db: Pool<Postgres>,
 }
