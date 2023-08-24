@@ -9,7 +9,7 @@ pub struct GameModel {
     pub id: Uuid,
     pub field_name: String,
     pub address: String,
-    pub date: DateTime<Utc>,
+    pub day: String,
     pub create_at: Option<DateTime<Utc>>,
     pub updated_at: Option<DateTime<Utc>>
 }
@@ -18,12 +18,12 @@ pub struct GameModel {
 pub struct CreateGameSchema {
     pub field_name: String,
     pub address: String,
-    pub date: DateTime<Utc>
+    pub day: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateGameSchema {
     pub field_name: String,
     pub address: String,
-    pub date: DateTime<Utc>
+    pub day: String
 }
