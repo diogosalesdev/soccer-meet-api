@@ -1,8 +1,12 @@
-use actix_web::{get, post, web, HttpResponse, Responder};
+use actix_web::{get, post, put, web, HttpResponse, Responder};
+use chrono::Utc;
 use serde_json::json;
 use sqlx::query_as;
 
-use crate::{models::game::CreateGameSchema, AppState};
+use crate::{
+    models::game::{CreateGameSchema, UpdateGameSchema},
+    AppState,
+};
 
 #[get("/games")]
 pub async fn get_games(data: web::Data<AppState>) -> impl Responder {
@@ -70,7 +74,52 @@ async fn get_game_id(path: web::Path<uuid::Uuid>, data: web::Data<AppState>) -> 
 
     match query_result {
         Ok(game) => {
-            let game_response = serde_json::json!({"status": "success", "data": serde_json::json!(
+            let game_response = json!({"status": "success", "data": serde_json::json!(
+                "game": game
+            )});
+            return HttpResponse::Ok().json(game_response);
+        }
+        Err(_) => {
+            let message = format!("Note with ID: {} not found!", game_id);
+            return HttpResponse::NotFound().json(json!({"status": "fail", "message": message}));
+        }
+    }
+}
+
+#[put("game/games/{id}")]
+async fn update_game(
+    path: web::Path<uuid::Uuid>,
+    data: web::Data<AppState>,
+    body: web::Json<UpdateGameSchema>,
+) -> impl Responder {
+    let game_id = path.into_inner();
+    let query_result = query_as!(GameModel, "SELECT * FROM games where id = $1", game_id)
+        .fetch_one(&data.db)
+        .await;
+
+    if querys_as.is_err() {
+        let message = format!("Game with ID: not found", game_id);
+        return HttpResponse::NotFound().json(json!({"status": "fail", "message": message}));
+    }
+
+    let now = Utc::now();
+    let game = query_result.unwrap();
+
+    let query_result = query_as!(
+    GameModel,
+    "UPDATE game SET field_name = $1, address = $2, day = $3, updated_at = $4 WHERE id = $5 returning *",
+    body.field_name.to_owned().unrwap_or(game.field_name),
+    body.address.to_owned().unwrap_or(game.address),
+    body.day.to_owned().unwrap_or(game.day),
+    now,
+    game_id
+  )
+  .fetch_one(&data.db)
+  .await;
+
+    match query_result {
+        Ok(game) => {
+            let game_response = json!({"status": "success", "data": json!(
                 "game": game
             )});
             return HttpResponse::Ok().json(game_response);
