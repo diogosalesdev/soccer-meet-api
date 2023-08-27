@@ -1,7 +1,7 @@
 use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
 use chrono::Utc;
 use serde_json::json;
-use sqlx::query_as;
+use sqlx::{query, query_as};
 
 use crate::{
     models::game::{CreateGameSchema, GameModel, UpdateGameSchema},
@@ -86,7 +86,7 @@ async fn get_game_id(path: web::Path<uuid::Uuid>, data: web::Data<AppState>) -> 
     }
 }
 
-#[put("/games/{id}")]
+#[put("/game/{id}")]
 async fn update_game(
     path: web::Path<uuid::Uuid>,
     data: web::Data<AppState>,
@@ -108,7 +108,7 @@ async fn update_game(
     let query_result = query_as!(
     GameModel,
     "UPDATE games SET field_name = $1, address = $2, day = $3, updated_at = $4 WHERE id = $5 returning *",
-    body.field_name.to_owned().unrwap_or(game.field_name),
+    body.field_name.to_owned().unwrap_or(game.field_name),
     body.address.to_owned().unwrap_or(game.address),
     body.day.to_owned().unwrap_or(game.day),
     now,
@@ -119,9 +119,9 @@ async fn update_game(
 
     match query_result {
         Ok(game) => {
-            let game_response = json!({"status": "success", "data": json!(
-                "game": game
-            )});
+            let game_response = json!({"status": "success", "data": json!({
+                    "game": game
+            })});
             return HttpResponse::Ok().json(game_response);
         }
         Err(_) => {
@@ -144,5 +144,5 @@ async fn delete_game(path: web::Path<uuid::Uuid>, data: web::Data<AppState>) -> 
         let message = format!("Game with id: {} not found!", game_id);
         return HttpResponse::NotFound().json(json!({"status": "fail", "message": message}));
     }
-    HttpResponse::NoContent().finish();
+    HttpResponse::NoContent().finish()
 }

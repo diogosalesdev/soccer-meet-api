@@ -23,7 +23,7 @@ pub struct CreateGameSchema {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateGameSchema {
-    pub field_name: Optional<String>,
-    pub address: Optional<String>,
-    pub day: Optional<String>,
+    pub field_name: Option<String>,
+    pub address: Option<String>,
+    pub day: Option<String>,
 }
