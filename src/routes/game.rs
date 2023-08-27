@@ -20,7 +20,7 @@ pub async fn get_games(data: web::Data<AppState>) -> impl Responder {
             .json(json!({"status": "error", "message": message}));
     }
 
-    let fields = query_result.unwrap();
+    let games = query_result.unwrap();
 
     let json_response = json!({
         "status": "success",
@@ -37,7 +37,7 @@ async fn create_game(
 ) -> impl Responder {
     let query_result = query_as!(
         GameModel,
-        "INSERT into games (field_name, address, date) values ($1, $2, $3) returning *",
+        "INSERT into games (field_name, address, day) values ($1, $2, $3) returning *",
         body.field_name.to_string(),
         body.address.to_string(),
         body.day.to_string(),
@@ -47,9 +47,9 @@ async fn create_game(
 
     match query_result {
         Ok(game) => {
-            let game_response = serde_json::json!({"status": "success", "data": serde_json::json!(
-                "game": game
-            )});
+            let game_response = json!({"status": "success", "data": json!({
+                    "game": game
+            })});
             return HttpResponse::Ok().json(game_response);
         }
         Err(e) => {
@@ -74,9 +74,9 @@ async fn get_game_id(path: web::Path<uuid::Uuid>, data: web::Data<AppState>) -> 
 
     match query_result {
         Ok(game) => {
-            let game_response = json!({"status": "success", "data": serde_json::json!(
-                "game": game
-            )});
+            let game_response = json!({"status": "success", "data": json!({
+                    "game": game
+            })});
             return HttpResponse::Ok().json(game_response);
         }
         Err(_) => {
@@ -97,8 +97,8 @@ async fn update_game(
         .fetch_one(&data.db)
         .await;
 
-    if querys_as.is_err() {
-        let message = format!("Game with ID: not found", game_id);
+    if query_result.is_err() {
+        let message = format!("Game with ID: {} not found", game_id);
         return HttpResponse::NotFound().json(json!({"status": "fail", "message": message}));
     }
 
@@ -107,7 +107,7 @@ async fn update_game(
 
     let query_result = query_as!(
     GameModel,
-    "UPDATE game SET field_name = $1, address = $2, day = $3, updated_at = $4 WHERE id = $5 returning *",
+    "UPDATE games SET field_name = $1, address = $2, day = $3, updated_at = $4 WHERE id = $5 returning *",
     body.field_name.to_owned().unrwap_or(game.field_name),
     body.address.to_owned().unwrap_or(game.address),
     body.day.to_owned().unwrap_or(game.day),

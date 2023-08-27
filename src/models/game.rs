@@ -10,20 +10,20 @@ pub struct GameModel {
     pub field_name: String,
     pub address: String,
     pub day: String,
-    pub create_at: Option<DateTime<Utc>>,
-    pub updated_at: Option<DateTime<Utc>>
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateGameSchema {
     pub field_name: String,
     pub address: String,
-    pub day: String
+    pub day: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateGameSchema {
-    pub field_name: String,
-    pub address: String,
-    pub day: String
+    pub field_name: Optional<String>,
+    pub address: Optional<String>,
+    pub day: Optional<String>,
 }
