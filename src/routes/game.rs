@@ -4,11 +4,11 @@ use serde_json::json;
 use sqlx::query_as;
 
 use crate::{
-    models::game::{CreateGameSchema, UpdateGameSchema},
+    models::game::{CreateGameSchema, GameModel, UpdateGameSchema},
     AppState,
 };
 
-#[get("/games")]
+#[get("/")]
 pub async fn get_games(data: web::Data<AppState>) -> impl Responder {
     let query_result = query_as!(GameModel, "SELECT * FROM games")
         .fetch_all(&data.db)
@@ -30,7 +30,7 @@ pub async fn get_games(data: web::Data<AppState>) -> impl Responder {
     HttpResponse::Ok().json(json_response)
 }
 
-#[post("/games/game")]
+#[post("/game")]
 async fn create_game(
     body: web::Json<CreateGameSchema>,
     data: web::Data<AppState>,
@@ -65,7 +65,7 @@ async fn create_game(
     }
 }
 
-#[get("games/game/{id}")]
+#[get("/game/{id}")]
 async fn get_game_id(path: web::Path<uuid::Uuid>, data: web::Data<AppState>) -> impl Responder {
     let game_id = path.into_inner();
     let query_result = query_as!(GameModel, "SELECT * FROM games WHERE id = $1", game_id)
@@ -86,7 +86,7 @@ async fn get_game_id(path: web::Path<uuid::Uuid>, data: web::Data<AppState>) -> 
     }
 }
 
-#[put("game/games/{id}")]
+#[put("/games/{id}")]
 async fn update_game(
     path: web::Path<uuid::Uuid>,
     data: web::Data<AppState>,
@@ -131,7 +131,7 @@ async fn update_game(
     }
 }
 
-#[delete("games/game/{id}")]
+#[delete("/game/{id}")]
 async fn delete_game(path: web::Path<uuid::Uuid>, data: web::Data<AppState>) -> impl Responder {
     let game_id = path.into_inner();
     let rows_affected = query!("DELETE FROM games WHERE id = $1", game_id)
