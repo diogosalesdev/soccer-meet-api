@@ -1,4 +1,4 @@
-use actix_web::{get, post, put, web, HttpResponse, Responder};
+use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
 use chrono::Utc;
 use serde_json::json;
 use sqlx::query_as;
@@ -129,4 +129,20 @@ async fn update_game(
             return HttpResponse::NotFound().json(json!({"status": "fail", "message": message}));
         }
     }
+}
+
+#[delete("games/game/{id}")]
+async fn delete_game(path: web::Path<uuid::Uuid>, data: web::Data<AppState>) -> impl Responder {
+    let game_id = path.into_inner();
+    let rows_affected = query!("DELETE FROM games WHERE id = $1", game_id)
+        .execute(&data.db)
+        .await
+        .unwrap()
+        .rows_affected();
+
+    if rows_affected == 0 {
+        let message = format!("Game with id: {} not found!", game_id);
+        return HttpResponse::NotFound().json(json!({"status": "fail", "message": message}));
+    }
+    HttpResponse::NoContent().finish();
 }
